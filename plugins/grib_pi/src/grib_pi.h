@@ -34,23 +34,35 @@
   #include <wx/glcanvas.h>
 #endif //precompiled headers
 
-#define     PLUGIN_VERSION_MAJOR    1
-#define     PLUGIN_VERSION_MINOR    4
+#define     PLUGIN_VERSION_MAJOR    3
+#define     PLUGIN_VERSION_MINOR    0
 
 #define     MY_API_VERSION_MAJOR    1
-#define     MY_API_VERSION_MINOR    7
+#define     MY_API_VERSION_MINOR    12
 
 #include "../../../include/ocpn_plugin.h"
 
-#include "grib.h"
+#include "../../../include/wx/jsonreader.h"
+#include "../../../include/wx/jsonwriter.h"
+
+#include "GribSettingsDialog.h"
+#include "GribOverlayFactory.h"
+#include "GribUIDialog.h"
 
 //----------------------------------------------------------------------------------------------------------
 //    The PlugIn Class Definition
 //----------------------------------------------------------------------------------------------------------
 
-#define GRIB_TOOL_POSITION    -1          // Request default positioning of toolbar tool
+#define GRIB_TOOL_POSITION    -1          // Request default positioning of ToolBar tool
+#define STARTING_STATE_STYLE  9999        // style option undifined
+#define ATTACHED               0          // dialog are attached
+#define SEPARATED              1          // dialog are separated
+#define ATTACHED_HAS_CAPTION   0          // dialog attached  has a caption
+#define ATTACHED_NO_CAPTION    1          // dialog attached don't have caption
+#define SEPARATED_HORIZONTAL   2          // dialog separated shown honrizontaly
+#define SEPARATED_VERTICAL     3          // dialog separated shown vaerticaly
 
-class grib_pi : public opencpn_plugin_17
+class grib_pi : public opencpn_plugin_112
 {
 public:
       grib_pi(void *ppimgr);
@@ -70,32 +82,41 @@ public:
       wxString GetLongDescription();
 
 //    The override PlugIn Methods
+      bool MouseEventHook( wxMouseEvent &event);
       bool RenderOverlay(wxDC &dc, PlugIn_ViewPort *vp);
       void SetCursorLatLon(double lat, double lon);
+      void OnContextMenuItemCallback(int id);
+      void SetPluginMessage(wxString &message_id, wxString &message_body);
       bool RenderGLOverlay(wxGLContext *pcontext, PlugIn_ViewPort *vp);
-
-
+      void SendTimelineMessage(wxDateTime time);
       void SetDefaults(void);
-
-      int GetToolbarToolCount(void);
-
+      int GetToolBarToolCount(void);
       void ShowPreferencesDialog( wxWindow* parent );
-
       void OnToolbarToolCallback(int id);
-
+      bool QualifyCtrlBarPosition( wxPoint position, wxSize size );
+      void MoveDialog( wxDialog *dialog, wxPoint position, wxPoint dfault );
 
 // Other public methods
-
-      void SetGribDir(wxString grib_dir){ m_grib_dir = grib_dir;};
-      void SetGribDialogX    (int x){ m_grib_dialog_x = x;};
-      void SetGribDialogY    (int x){ m_grib_dialog_y = x;}
-      void SetGribDialogSizeX(int x){ m_grib_dialog_sx = x;}
-      void SetGribDialogSizeY(int x){ m_grib_dialog_sy = x;}
+      void SetCtrlBarXY   (wxPoint p){ m_CtrlBarxy = p;}
+      void SetCursorDataXY    (wxPoint p){ m_CursorDataxy = p;}
+      void SetCtrlBarSizeXY(wxSize p){ m_CtrlBar_Sizexy = p;}
       void SetColorScheme(PI_ColorScheme cs);
+      void SetDialogFont( wxWindow *window, wxFont *font = OCPNGetFont(_("Dialog"), 10) );
 
-      bool GetUseMS(void){ return m_bGRIBUseMS; }
-      void OnGribDialogClose();
+      void OnGribCtrlBarClose();
+
+      wxPoint GetCtrlBarXY() { return m_CtrlBarxy; }
+      wxPoint GetCursorDataXY() { return m_CursorDataxy; }
+      int  GetTimeZone() { return m_bTimeZone; }
+      int  GetStartOptions() { return m_bStartOptions; }
+      bool GetCopyFirstCumRec() { return  m_bCopyFirstCumRec; }
+      bool GetCopyMissWaveRec() { return  m_bCopyMissWaveRec; }
+
+      GRIBOverlayFactory *m_pGRIBOverlayFactory;
       GRIBOverlayFactory *GetGRIBOverlayFactory(){ return m_pGRIBOverlayFactory; }
+
+      int   m_MenuItem;
+      bool  m_DialogStyleChanged;
 
 private:
       bool LoadConfig(void);
@@ -104,30 +125,52 @@ private:
       wxFileConfig     *m_pconfig;
       wxWindow         *m_parent_window;
 
-      GRIBUIDialog     *m_pGribDialog;
-      GRIBOverlayFactory *m_pGRIBOverlayFactory;
+      GRIBUICtrlBar     *m_pGribCtrlBar;
 
       int              m_display_width, m_display_height;
       int              m_leftclick_tool_id;
 
-      bool             m_bShowGrib;
-
-      int              m_grib_dialog_x, m_grib_dialog_y;
-      int              m_grib_dialog_sx, m_grib_dialog_sy;
-      wxString         m_grib_dir;
-
-      bool              m_bGRIBUseHiDef;
-      bool              m_bGRIBShowIcon;
-      bool              m_bGRIBUseMS;
+      wxPoint          m_CtrlBarxy, m_CursorDataxy;
+      wxSize           m_CtrlBar_Sizexy;
 
       //    Controls added to Preferences panel
-      wxCheckBox              *m_pGRIBShowIcon;
       wxCheckBox              *m_pGRIBUseHiDef;
-      wxCheckBox              *m_pGRIBUseMS;
+      wxCheckBox              *m_pGRIBUseGradualColors;
 
+      GribTimelineRecordSet *m_pLastTimelineSet;
+
+      // preference data
+      bool              m_bGRIBUseHiDef;
+      bool              m_bGRIBUseGradualColors;
+      int              m_bTimeZone;
+      bool             m_bCopyFirstCumRec;
+      bool             m_bCopyMissWaveRec;
+      int              m_bLoadLastOpenFile;
+      int              m_bStartOptions;
+      wxString         m_RequestConfig;
+      wxString         m_bMailToAddresses;
+      wxString         m_bMailFromAddress;
+      wxString         m_ZyGribLogin;
+      wxString         m_ZyGribCode;
+      double           m_GUIScaleFactor;
+
+      bool             m_bGRIBShowIcon;
+
+      bool        m_bShowGrib;
 };
 
+//----------------------------------------------------------------------------------------
+// Prefrence dialog definition
+//----------------------------------------------------------------------------------------
+
+class GribPreferencesDialog : public GribPreferencesDialogBase
+{
+public:
+    GribPreferencesDialog( wxWindow *pparent)
+    : GribPreferencesDialogBase(pparent) {}
+    ~GribPreferencesDialog() {}
+
+private:
+    void OnStartOptionChange(wxCommandEvent& event);
+};
 #endif
-
-
-

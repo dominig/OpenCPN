@@ -71,6 +71,9 @@ S57Reader::S57Reader( const char * pszFilename )
 
     bMissingWarningIssued = FALSE;
     bAttrWarningIssued = FALSE;
+    
+    Nall = 0;
+    Aall = 0;
 }
 
 /************************************************************************/
@@ -335,9 +338,28 @@ int S57Reader::Ingest(CallBackFunction pcallback)
 
         if( EQUAL(pszname,"VRID") )
         {
+#if 0
             int         nRCNM = poRecord->GetIntSubfield( "VRID",0, "RCNM",0);
             int         nRCID = poRecord->GetIntSubfield( "VRID",0, "RCID",0);
+#else
+            int nRCNM = 0, nRCID = 0;
+            DDFField *poField = poRecord->FindField( "VRID", 0 );
+            if( poField ) {
+                int         nBytesRemaining;
+                DDFSubfieldDefn     *poSFDefn;
+                poSFDefn = poField->GetFieldDefn()->FindSubfieldDefn( "RCNM" );
+                if( poSFDefn ) {
+                    const char *pachData = poField->GetSubfieldData(poSFDefn, &nBytesRemaining, 0);
+                    nRCNM = poSFDefn->ExtractIntData( pachData, nBytesRemaining, NULL );
+                }
 
+                poSFDefn = poField->GetFieldDefn()->FindSubfieldDefn( "RCID" );
+                if( poSFDefn ) {
+                    const char *pachData = poField->GetSubfieldData(poSFDefn, &nBytesRemaining, 0);
+                    nRCID = poSFDefn->ExtractIntData( pachData, nBytesRemaining, NULL );
+                }
+            }
+#endif
 
             switch( nRCNM )
             {
@@ -371,7 +393,6 @@ int S57Reader::Ingest(CallBackFunction pcallback)
 //              poRecord->Dump(stderr);               //  for debugging, try ./opencpn &>test.dbg
 
             int         nRCID = poRecord->GetIntSubfield( "FRID",0, "RCID",0);
-
             oFE_Index.AddRecord( nRCID, poRecord->Copy() );
 
         }
@@ -389,8 +410,9 @@ int S57Reader::Ingest(CallBackFunction pcallback)
         else if( EQUAL(pszname,"DSID") )
         {
             CPLFree( pszDSNM );
-            pszDSNM =
-                CPLStrdup(poRecord->GetStringSubfield( "DSID", 0, "DSNM", 0 ));
+            pszDSNM = CPLStrdup(poRecord->GetStringSubfield( "DSID", 0, "DSNM", 0 ));
+            Nall = poRecord->GetIntSubfield( "DSSI", 0, "NALL", 0 );
+            Aall = poRecord->GetIntSubfield( "DSSI", 0, "AALL", 0 );
         }
 
         else
@@ -767,6 +789,8 @@ void S57Reader::ApplyObjectClassAttributes( DDFRecord * poRecord,
     if( poATTF == NULL )
         return;
 
+    DDFFieldDefn *poDefn = poATTF->GetFieldDefn();
+    
     nAttrCount = poATTF->GetRepeatCount();
     for( iAttr = 0; iAttr < nAttrCount; iAttr++ )
     {
@@ -806,13 +830,21 @@ void S57Reader::ApplyObjectClassAttributes( DDFRecord * poRecord,
             {
                 bMissingWarningIssued = TRUE;
                 CPLError( CE_Warning, CPLE_AppDefined,
-                          "Attributes %s ignored, not in expected schema.\n"
-                          "No more warnings will be issued for this dataset.",
-                          pszAcronym );
+                          "For feature \"%s\", attribute \"%s\" ignored, not in expected schema.\n",
+                          poFeature->GetDefnRef()->GetName(), pszAcronym );
             }
             continue;
         }
 
+        // Handle deleted attributes
+        // If the first char of the attribute is 0x7f, then unset this field.
+        // Any later requests for the attribute value will retrun an empty string.
+        if(pszValue[0] == 0x7f)
+        {
+            poFeature->UnsetField( iField );
+            continue;
+        }
+        
         poFldDefn = poFeature->GetDefnRef()->GetFieldDefn( iField );
         if( poFldDefn->GetType() == OFTInteger
             || poFldDefn->GetType() == OFTReal )
@@ -848,6 +880,8 @@ void S57Reader::ApplyObjectClassAttributes( DDFRecord * poRecord,
         if( nAttrId < 1 || nAttrId >= poRegistrar->GetMaxAttrIndex()
             || (pszAcronym = poRegistrar->GetAttrAcronym(nAttrId)) == NULL )
         {
+//            poRecord->Dump(stdout);
+//            int     xnAttrId = poRecord->GetIntSubfield("NATF",0,"ATTL",iAttr);
             static int bAttrWarningIssued = FALSE;
 
             if( !bAttrWarningIssued )
@@ -865,8 +899,49 @@ void S57Reader::ApplyObjectClassAttributes( DDFRecord * poRecord,
             continue;
         }
 
-        poFeature->SetField( pszAcronym,
-                          poRecord->GetStringSubfield("NATF",0,"ATVL",iAttr) );
+        const char *pszValue = poRecord->GetStringSubfield("NATF",0,"ATVL",iAttr);
+        if( pszValue != NULL )
+        {
+            
+        //      If National Language strings are encoded as UCS-2 (a.k.a UTF-16)
+        //      then we capture and duplicate the attribute string directly,
+        //      in order to avoid truncation that would happen if it were considered a simple char *
+        
+            if(Nall==2) { //national string encoded in UCS-2, determined from DSID record
+
+        //      Compute the data size
+                DDFField    *poField;
+                int nLength = 0;
+                poField = poRecord->FindField( "NATF", 0 );
+                if( poField ) {
+                    DDFSubfieldDefn     *poSFDefn;
+            
+                    poSFDefn = poField->GetFieldDefn()->FindSubfieldDefn( "ATVL" );
+                    if( poSFDefn ) {
+                        int max_length = 0;
+                        const char *pachData = poField->GetSubfieldData(poSFDefn, &max_length, iAttr);
+                        nLength = poSFDefn->GetDataLength( pachData, max_length, NULL);
+                    }
+                }
+ 
+                if( nLength ) {
+                    //  Make the new length a multiple of 2, so that
+                    //  later stages will count chars correctly
+                    //  Also, be sure that the string ends with 00 00
+                    int new_len = ((nLength / 2) + 2)*2;
+                    char *aa = (char *)calloc(new_len, 1);
+                    memcpy(aa, pszValue, nLength);
+                    
+                    int index = poFeature->GetFieldIndex(pszAcronym);
+                    OGRField *field = poFeature->GetRawFieldRef( index );
+                    field->String =  aa;
+                }
+            }
+            else {      //  encoded as ISO8859_1, pass it along
+                poFeature->SetField(pszAcronym,pszValue);
+            }
+        }
+                
     }
 }
 
@@ -1502,6 +1577,18 @@ void S57Reader::AssembleLineGeometry( DDFRecord * poFRecord,
         int nVC_RCID1 = 0;
         int nVC_RCIDStart, nVC_RCIDEnd;
 
+        if( poField == NULL )
+        {
+            CPLError( CE_Warning, CPLE_AppDefined,
+                      "Couldn't find field VRPT in spatial record %d.\n"
+                      "Feature OBJL=%s, RCID=%d may have corrupt or"
+                      "missing geometry.",
+                      nRCID,
+                      poFeature->GetDefnRef()->GetName(),
+                      poFRecord->GetIntSubfield( "FRID", 0, "RCID", 0 ) );
+            continue;
+        }
+        
         if(poField->GetRepeatCount() > 1)
         {
               nVC_RCID0 = ParseName( poField, 0 );
@@ -2302,6 +2389,71 @@ int S57Reader::ApplyRecordUpdate( DDFRecord *poTarget, DDFRecord *poUpdate )
         }
     }
 
+    if( poUpdate->FindField( "NATF" ) != NULL )
+    {
+        bool b_newField = false;
+        DDFSubfieldDefn *poSrcATVLDefn;
+        DDFField *poSrcATTF = poUpdate->FindField( "NATF" );
+        DDFField *poDstATTF = poTarget->FindField( "NATF" );
+ 
+//        int up_FIDN = poUpdate->GetIntSubfield( "FOID", 0, "FIDN", 0 );
+//        if(up_FIDN == 1103712044 /*1225530334*/){
+//            poTarget->Dump(stdout);
+//        }
+        
+        if(NULL == poDstATTF)
+        {
+            //  This probably means that the update applies to an attribute that doesn't (yet) exist
+            //  To fix, we need to add an attribute, then update it.
+            
+            DDFFieldDefn *poNATF = poTarget->GetModule()->FindFieldDefn( "NATF" );
+            poTarget->AddField(poNATF);
+            poDstATTF = poTarget->FindField( "NATF" );
+            b_newField = true;
+            
+//            poTarget->Dump(stdout);
+            
+//            CPLDebug( "S57","Could not find target ATTF field for attribute update");
+//           return FALSE;
+        }
+        
+        int     nRepeatCount = poSrcATTF->GetRepeatCount();
+        
+        poSrcATVLDefn = poSrcATTF->GetFieldDefn()->FindSubfieldDefn( "ATVL" );
+        
+        for( int iAtt = 0; iAtt < nRepeatCount; iAtt++ )
+        {
+            int nATTL = poUpdate->GetIntSubfield( "NATF", 0, "ATTL", iAtt );
+            int iTAtt, nDataBytes;
+            const char *pszRawData;
+            
+            for( iTAtt = poDstATTF->GetRepeatCount()-1; iTAtt >= 0; iTAtt-- )
+            {
+                if( poTarget->GetIntSubfield( "NATF", 0, "ATTL", iTAtt ) == nATTL )
+                    break;
+            }
+            if( iTAtt == -1 )
+                iTAtt = poDstATTF->GetRepeatCount();
+
+            //  If we just added a new field above, then the first attribute will be 0.
+            //   We should replace this one    
+            if(b_newField){
+                if( poTarget->GetIntSubfield( "NATF", 0, "ATTL", 0 ) == 0){
+                    iTAtt = 0;
+                    b_newField = false;
+                }
+            }
+            
+                
+            pszRawData = poSrcATTF->GetInstanceData( iAtt, &nDataBytes );
+            
+//            poTarget->Dump(stdout);
+            poTarget->SetFieldRaw( poDstATTF, iTAtt, pszRawData, nDataBytes ); ///dsr
+//            poTarget->Dump(stdout);
+            
+        }
+    }
+    
     return TRUE;
 }
 
@@ -2313,7 +2465,7 @@ int S57Reader::ApplyRecordUpdate( DDFRecord *poTarget, DDFRecord *poUpdate )
 /*      currently loaded index of features.                             */
 /************************************************************************/
 
-int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
+int S57Reader::ApplyUpdates( DDFModule *poUpdateModule, int iUpdate )
 
 {
     DDFRecord   *poRecord;
@@ -2387,19 +2539,19 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                     if( poTarget == NULL )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Can't find RCNM=%d,RCID=%d for delete.",
-                                  nRCNM, nRCID );
+                                  "While applying update %d, Can't find RCNM=%d,RCID=%d for delete.",
+                                  iUpdate, nRCNM, nRCID );
                         ret_code = BAD_UPDATE;
                     }
                     else if( poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 )
                              != nRVER - 1 )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "On RecordRemove, mismatched RVER value for RCNM=%d,RCID=%d...update RVER is %d, target RVER is %d.",
-                                  nRCNM, nRCID, nRVER, poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) );
+                                  "While applying update %d, On RecordRemove, mismatched RVER value for RCNM=%d,RCID=%d...update RVER is %d, target RVER is %d.",
+                                  iUpdate, nRCNM, nRCID, nRVER, poTarget->GetIntSubfield( pszKey, 0, "RVER", 0 ) );
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Removal of RCNM=%d,RCID=%d failed.",
-                                  nRCNM, nRCID );
+                                  "While applying update %d, Removal of RCNM=%d,RCID=%d failed.",
+                                  iUpdate, nRCNM, nRCID );
                         ret_code = BAD_UPDATE;
 
                     }
@@ -2418,8 +2570,8 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                     if( poTarget == NULL )
                     {
                         CPLError( CE_Warning, CPLE_AppDefined,
-                                  "Can't find RCNM=%d,RCID=%d for update.",
-                                  nRCNM, nRCID );
+                                  "While applying update %d, Can't find RCNM=%d,RCID=%d for update.",
+                                  iUpdate, nRCNM, nRCID );
                         ret_code = BAD_UPDATE;
 
                     }
@@ -2428,8 +2580,8 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
                         if( !ApplyRecordUpdate( poTarget, poRecord ) )
                         {
                             CPLError( CE_Warning, CPLE_AppDefined,
-                                      "An update to RCNM=%d,RCID=%d failed.",
-                                      nRCNM, nRCID );
+                                      "While applying update %d, an update to RCNM=%d,RCID=%d failed.",
+                                      iUpdate, nRCNM, nRCID );
                             ret_code = BAD_UPDATE;
                         }
                     }
@@ -2445,8 +2597,8 @@ int S57Reader::ApplyUpdates( DDFModule *poUpdateModule )
         else
         {
             CPLDebug( "S57",
-                      "Skipping %s record in S57Reader::ApplyUpdates().",
-                      pszKey );
+                      "While applying update %d, Skipping %s record in S57Reader::ApplyUpdates().",
+                      iUpdate, pszKey );
             ret_code = BAD_UPDATE;
 
         }
@@ -2499,7 +2651,7 @@ int S57Reader::FindAndApplyUpdates( const char * pszPath )
 
         if( bSuccess )
         {
-              int update_ret = ApplyUpdates( &oUpdateModule );
+              int update_ret = ApplyUpdates( &oUpdateModule, iUpdate );
               if(update_ret)
                     ret_code = update_ret;
         }

@@ -1,11 +1,11 @@
-/******************************************************************************
+/***************************************************************************
  *
- * Project:  OpenCP
+ * Project:  OpenCPN
  * Purpose:  Route Manager
  * Author:   David Register
  *
  ***************************************************************************
- *   Copyright (C) 2010 by David S. Register   *
+ *   Copyright (C) 2010 by David S. Register                               *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -20,11 +20,8 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
  *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,  USA.             *
- ***************************************************************************
- *
- */
-
+ *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,  USA.         *
+ **************************************************************************/
 
 #ifndef __ROUTEMAN_H__
 #define __ROUTEMAN_H__
@@ -32,7 +29,8 @@
 
 #include "chart1.h"                 // for ColorScheme definition
 #include <wx/imaglist.h>
-
+#include "styles.h"
+#include "Select.h"
 #include "nmea0183.h"
 
 //----------------------------------------------------------------------------
@@ -43,20 +41,6 @@
 #endif
 
 
-
-//    Constants for SendToGps... Dialog
-#define ID_STGDIALOG 10005
-#define SYMBOL_STG_STYLE wxCAPTION|wxRESIZE_BORDER|wxSYSTEM_MENU|wxCLOSE_BOX
-#define SYMBOL_STG_TITLE _("Send Route To GPS")
-#define SYMBOL_STG_IDNAME ID_STGDIALOG
-#define SYMBOL_STG_SIZE wxSize(500, 500)
-#define SYMBOL_STG_POSITION wxDefaultPosition
-
-enum {
-      ID_STG_CANCEL =            10000,
-      ID_STG_OK,
-      ID_STG_CHOICE_COMM
-};
 
 //----------------------------------------------------------------------------
 //    forward class declarations
@@ -72,15 +56,6 @@ class markicon_bitmap_list_type;
 class markicon_key_list_type;
 class markicon_description_list_type;
 
-class MarkIcon
-{
-      public:
-            wxBitmap   *picon_bitmap;
-            wxString   icon_name;
-            wxString   icon_description;
-};
-
-
 //----------------------------------------------------------------------------
 //   Routeman
 //----------------------------------------------------------------------------
@@ -91,8 +66,7 @@ public:
       Routeman(MyApp *parent);
       ~Routeman();
 
-      void AssembleAllRoutes(void);
-      void DeleteRoute(Route *pRoute);
+      bool DeleteRoute(Route *pRoute);
       void DeleteAllRoutes(void);
       void DeleteAllTracks(void);
 
@@ -100,8 +74,10 @@ public:
 
       bool IsRouteValid(Route *pRoute);
 
+      Route *FindRouteByGUID(wxString &guid);
       Route *FindRouteContainingWaypoint(RoutePoint *pWP);
       wxArrayPtrVoid *GetRouteArrayContaining(RoutePoint *pWP);
+      bool DoesRouteContainSharedPoints( Route *pRoute );
 
       bool ActivateRoute(Route *pRouteToActivate, RoutePoint *pStartPoint = NULL);
       bool ActivateRoutePoint(Route *pA, RoutePoint *pRP);
@@ -120,10 +96,12 @@ public:
       double GetCurrentBrgToActivePoint(){ return CurrentBrgToActivePoint;}
       double GetCurrentRngToActiveNormalArrival(){ return CurrentRangeToActiveNormalCrossing;}
       double GetCurrentXTEToActivePoint(){ return CurrentXTEToActivePoint;}
+      void   ZeroCurrentXTEToActivePoint();
       double GetCurrentSegmentCourse(){ return CurrentSegmentCourse;}
       int   GetXTEDir(){ return XTEDir;}
 
       wxPen   * GetRoutePen(void){return m_pRoutePen;}
+      wxPen   * GetTrackPen(void){return m_pTrackPen;}
       wxPen   * GetSelectedRoutePen(void){return m_pSelectedRoutePen;}
       wxPen   * GetActiveRoutePen(void){return m_pActiveRoutePen;}
       wxPen   * GetActiveRoutePointPen(void){return m_pActiveRoutePointPen;}
@@ -139,6 +117,8 @@ public:
       bool        m_bDataValid;
 
 private:
+      void DoAdvance(void);
+    
       MyApp       *m_pparent_app;
       Route       *pActiveRoute;
       RoutePoint  *pActivePoint;
@@ -156,6 +136,7 @@ private:
       int         XTEDir;
       bool        m_bArrival;
       wxPen       *m_pRoutePen;
+      wxPen       *m_pTrackPen;
       wxPen       *m_pSelectedRoutePen;
       wxPen       *m_pActiveRoutePen;
       wxPen       *m_pActiveRoutePointPen;
@@ -167,44 +148,12 @@ private:
       wxBrush     *m_pRoutePointBrush;
 
       NMEA0183    m_NMEA0183;                         // For autopilot output
+      
+      double      m_arrival_min;
+      int         m_arrival_test;
+      
 
 };
-
-//----------------------------------------------------------------------------
-//   Route "Send to GPS..." Dialog Definition
-//----------------------------------------------------------------------------
-
-class SendToGpsDlg : public wxDialog
-{
-      DECLARE_DYNAMIC_CLASS( SendToGpsDlg )
-      DECLARE_EVENT_TABLE()
-
- public:
-       SendToGpsDlg();
-       SendToGpsDlg(  wxWindow* parent, wxWindowID id, const wxString& caption, const wxString& hint, const wxPoint& pos, const wxSize& size, long style );
-       ~SendToGpsDlg( );
-
-       bool Create( wxWindow* parent, wxWindowID id = SYMBOL_STG_IDNAME, const wxString& caption = SYMBOL_STG_TITLE, const wxString& hint = SYMBOL_STG_TITLE,
-                    const wxPoint& pos = SYMBOL_STG_POSITION, const wxSize& size = SYMBOL_STG_SIZE,
-                    long style = SYMBOL_STG_STYLE);
-       void SetRoute(Route *pRoute){m_pRoute = pRoute;}
-       void SetWaypoint(RoutePoint *pRoutePoint){m_pRoutePoint = pRoutePoint;}
-
-private:
-      void CreateControls(const wxString& hint);
-
-      void OnCancelClick( wxCommandEvent& event );
-      void OnSendClick( wxCommandEvent& event );
-
-      Route       *m_pRoute;
-      RoutePoint  *m_pRoutePoint;
-      wxComboBox  *m_itemCommListBox;
-      wxGauge     *m_pgauge;
-      wxButton    *m_CancelButton;
-      wxButton    *m_SendButton;
-
-};
-
 
 
 //----------------------------------------------------------------------------
@@ -217,40 +166,41 @@ public:
       WayPointman();
       ~WayPointman();
       wxBitmap *GetIconBitmap(const wxString& icon_key);
+      unsigned int GetIconTexture( const wxBitmap *pmb, int &glw, int &glh );
       int GetIconIndex(const wxBitmap *pbm);
-      int GetNumIcons(void){ return m_nIcons; }
+      int GetXIconIndex(const wxBitmap *pbm);
+      int GetNumIcons(void){ return m_pIconArray->Count(); }
       wxString CreateGUID(RoutePoint *pRP);
       RoutePoint *GetNearbyWaypoint(double lat, double lon, double radius_meters);
-      RoutePoint *GetOtherNearbyWaypoint(double lat, double lon, double radius_meters, wxString &guid);
+      RoutePoint *GetOtherNearbyWaypoint(double lat, double lon, double radius_meters, const wxString &guid);
       void SetColorScheme(ColorScheme cs);
+      bool SharedWptsExist();
       void DeleteAllWaypoints(bool b_delete_used);
-      RoutePoint *FindRoutePointByGUID(wxString &guid);
-      void DestroyWaypoint(RoutePoint *pRp);
+      RoutePoint *FindRoutePointByGUID(const wxString &guid);
+      void DestroyWaypoint(RoutePoint *pRp, bool b_update_changeset = true);
       void ClearRoutePointFonts(void);
-
-      bool DoesIconExist(const wxString icon_key);
+      void ProcessIcons( ocpnStyle::Style* style );
+      
+      bool DoesIconExist(const wxString & icon_key) const;
       wxBitmap *GetIconBitmap(int index);
       wxString *GetIconDescription(int index);
       wxString *GetIconKey(int index);
 
       wxImageList *Getpmarkicon_image_list(void);
 
-      RoutePointList    *m_pWayPointList;
+      bool AddRoutePoint(RoutePoint *prp);
+      bool RemoveRoutePoint(RoutePoint *prp);
+      RoutePointList *GetWaypointList(void) { return m_pWayPointList; }
 
+      void ProcessIcon(wxBitmap pimage, const wxString & key, const wxString & description);
 private:
-      void ProcessIcon(wxImage *pimage, wxString key, wxString description);
-
+      void ProcessUserIcons( ocpnStyle::Style* style );
+      RoutePointList    *m_pWayPointList;
       wxBitmap *CreateDimBitmap(wxBitmap *pBitmap, double factor);
 
-      int m_nIcons;
-
       wxImageList       *pmarkicon_image_list;        // Current wxImageList, updated on colorscheme change
-
-      wxArrayPtrVoid    DayIconArray;
-      wxArrayPtrVoid    DuskIconArray;
-      wxArrayPtrVoid    NightIconArray;
-
-      wxArrayPtrVoid    *m_pcurrent_icon_array;
+      int               m_markicon_image_list_base_count;
+      wxArrayPtrVoid    *m_pIconArray;
 
       int         m_nGUID;
 };

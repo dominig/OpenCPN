@@ -87,7 +87,9 @@ NMEA0183::NMEA0183()
    response_table.Append( (RESPONSE *) &Gsv );
    response_table.Append( (RESPONSE *) &Gga );
    response_table.Append( (RESPONSE *) &GPwpl );
-
+   response_table.Append( (RESPONSE *) &Apb );
+   response_table.Append( (RESPONSE *) &Xte );
+   
 
 /*
    response_table.Add( (RESPONSE *) &Rot );
@@ -224,8 +226,8 @@ bool NMEA0183::IsGood( void ) const
    }
    */
 
-   if ( (sentence.Sentence.Right( 1 ) != _T("\n") ) && (sentence.Sentence.Right( 1 ) != _T("\r") ))
-      return false;
+//TODO: GPSD messages are not terminated with CR/LF   if ( (sentence.Sentence.Right( 1 ) != _T("\n") ) && (sentence.Sentence.Right( 1 ) != _T("\r") ))
+//      return false;
 
    return( TRUE );
 }
@@ -233,6 +235,10 @@ bool NMEA0183::IsGood( void ) const
 
 bool NMEA0183::PreParse( void )
 {
+      wxCharBuffer buf = sentence.Sentence.ToUTF8();
+      if( !buf.data() )                            // badly formed sentence?
+        return false;
+    
       if ( IsGood() )
       {
             wxString mnemonic = sentence.Field( 0 );
@@ -339,6 +345,25 @@ bool NMEA0183::Parse( void )
    return( return_value );
 }
 
+wxArrayString NMEA0183::GetRecognizedArray(void)
+{
+    wxArrayString ret;
+    
+    wxMRLNode *node = response_table.GetFirst();
+    
+    while(node)
+    {
+        RESPONSE *resp = node->GetData();
+        ret.Add( resp->Mnemonic );
+        node = node->GetNext();
+    }
+
+    return ret;
+}
+
+    
+    
+    
 NMEA0183& NMEA0183::operator << ( wxString & source )
 {
 //   ASSERT_VALID( this );

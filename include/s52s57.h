@@ -30,8 +30,11 @@
 #define _S52S57_H_
 
 #include "bbox.h"
+#include "ocpn_types.h"
 
-#define CURRENT_SENC_FORMAT_VERSION  122
+#include <vector>
+
+#define CURRENT_SENC_FORMAT_VERSION  124
 
 //    Fwd Defns
 class wxArrayOfS57attVal;
@@ -106,6 +109,14 @@ typedef enum _DisCat{
 }DisCat;
 
 
+#define MASK_POINT      1
+#define MASK_LINE       2
+#define MASK_AREA       4
+#define MASK_MPS        8
+#define MASK_ALL        MASK_POINT + MASK_LINE + MASK_AREA + MASK_MPS
+
+
+    
 typedef enum _Rules_t{
    RUL_NONE,                        // no rule type (init)
    RUL_TXT_TX,                      // TX
@@ -199,17 +210,10 @@ typedef struct _Cond{
 
 
 
-typedef struct _S52color{
-   char colName[20];
-   unsigned char  R;
-   unsigned char  G;
-   unsigned char  B;
-}S52color;
-
 class S52_TextC
 {
 public:
-      S52_TextC(){ pcol = NULL, pFont = NULL, m_pRGBA = NULL; }
+      S52_TextC(){ pcol = NULL, pFont = NULL, m_pRGBA = NULL, bnat = false, bspecial_char = false; }
       ~S52_TextC(){ free(m_pRGBA); }
 
     wxString   frmtd;       // formated text string
@@ -230,20 +234,12 @@ public:
     int           RGBA_width;
     int           RGBA_height;
     int           rendered_char_height;
+    wxRect      rText;          // rectangle of the text as currently rendered, used for declutter
+    bool        bnat;           // frmtd is National text, UTF-8 encoded
+    bool        bspecial_char;  // frmtd has special ASCII characters, i.e. > 127
 };
 
 
-WX_DECLARE_STRING_HASH_MAP( wxColour, wxColorHashMap );
-
-WX_DECLARE_STRING_HASH_MAP( S52color, colorHashMap );
-
-typedef struct _colTable {
-	wxString *tableName;
-	wxString rasterFileName;
-	wxArrayPtrVoid *color;
-	colorHashMap colors;
-	wxColorHashMap wxColors;
-} colTable;
 
 
 //
@@ -257,19 +253,17 @@ typedef enum _OGRatt_t{
    OGR_STR,
 }OGRatt_t;
 
-typedef struct _S57attVal{
-   void *   value;
-   OGRatt_t valType;
-}S57attVal;
+typedef struct _S57attVal {
+    void * value;
+    OGRatt_t valType;
+} S57attVal;
 
+WX_DEFINE_ARRAY( S57attVal *, wxArrayOfS57attVal );
 
-
-typedef struct _OBJLElement{
-      char  OBJLName[6];
-      int         nViz;
-}OBJLElement;
-
-
+typedef struct _OBJLElement {
+    char OBJLName[6];
+    int nViz;
+} OBJLElement;
 
 // OGR primitive type
 typedef enum _geoPrim_t{
@@ -293,6 +287,20 @@ class S57Obj;
 class OGRFeature;
 class PolyTessGeo;
 class PolyTessGeoTrap;
+class line_segment_element;
+
+typedef struct _chart_context{
+    void                    *m_pvc_hash;
+    void                    *m_pve_hash;
+    double                  ref_lat;
+    double                  ref_lon;
+    wxArrayPtrVoid          *pFloatingATONArray;
+    wxArrayPtrVoid          *pRigidATONArray;
+    s57chart                *chart;
+    double                  safety_contour; 
+    float                   *vertex_buffer;
+    
+}chart_context;
 
 
 class S57Obj
@@ -302,11 +310,11 @@ public:
       //  Public Methods
       S57Obj();
       ~S57Obj();
-      S57Obj(char *first_line, wxInputStream *fpx, double ref_lat, double ref_lon);
+      S57Obj(char *first_line, int size, wxInputStream *fpx, double ref_lat, double ref_lon, int senc_file_version);
 
-      wxString GetAttrValueAsString ( char *attr );
-
-
+      wxString GetAttrValueAsString ( const char *attr );
+      int GetAttributeIndex( const char *AttrSeek );
+          
       // Private Methods
 private:
       bool IsUsefulAttribute(char *buf);
@@ -318,8 +326,9 @@ public:
       char                    FeatureName[8];
       GeoPrim_t               Primitive_type;
 
-      wxString                *attList;
+      char                    *att_array;
       wxArrayOfS57attVal      *attVal;
+      int                     n_attr;
 
       int                     iOBJL;
       int                     Index;
@@ -356,9 +365,13 @@ public:
       int                     m_n_lsindex;
       int                     *m_lsindex_array;
       int                     m_n_edge_max_points;
-
+      line_segment_element    *m_ls_list;
+      
       DisCat                  m_DisplayCat;
-
+      int                     m_DPRI;                 // display priority, assigned from initial LUP
+                                                      // May be adjusted by CS
+      bool                    m_bcategory_mutable;    //  CS procedure may move this object to a higher category.
+                                                      //  Used as a hint to rendering filter logic
 
                                                       // This transform converts from object geometry
                                                       // to SM coordinates.
@@ -366,20 +379,39 @@ public:
       double                  y_rate;                 // to be used in GetPointPix() and friends
       double                  x_origin;               // on a per-object basis if necessary
       double                  y_origin;
-
+      
+      chart_context           *m_chart_context;       // per-chart constants, carried in each object for convenience
+      int auxParm0;                                   // some per-object auxiliary parameters, used for OpenGL
+      int auxParm1;
+      int auxParm2;
+      int auxParm3;
 };
 
+typedef std::vector<S57Obj *> S57ObjVector;
+
+typedef struct _sm_parms{
+    double easting_vp_center;
+    double northing_vp_center;
+}sm_parms;
 
 
+WX_DEFINE_ARRAY_PTR(Rules*, ArrayOfRules);
 
+typedef struct _mps_container{
+    ArrayOfRules *cs_rules;
+}mps_container;
 
 // object rasterization rules
 typedef struct _ObjRazRules{
    LUPrec          *LUP;
    S57Obj          *obj;
-   s57chart        *chart;                //dsr ... chart object owning this rule set
+//   void         (*GetPointPixel)(void *, float, float, wxPoint *);
+   
+//   s57chart        *chart;                //dsr ... chart object owning this rule set
+   sm_parms        *sm_transform_parms;
    struct _ObjRazRules *child;            // child list, used only for MultiPoint Soundings
    struct _ObjRazRules *next;
+   struct _mps_container *mps;
 }ObjRazRules;
 
 
@@ -394,7 +426,6 @@ class render_canvas_parms
 {
 public:
       render_canvas_parms(void);
-      render_canvas_parms(int x, int y, int width, int height, wxColour color);
       ~render_canvas_parms(void);
 
       unsigned char           *pix_buff;
@@ -410,6 +441,7 @@ public:
       int                     depth;
       bool                    b_stagger;
       int                     OGL_tex_name;
+      bool                    b_revrgb;
 };
 
 //----------------------------------------------------------------------------------
@@ -419,20 +451,115 @@ public:
 class VE_Element
 {
 public:
-      int         index;
-      int         nCount;
+      unsigned int index;
+      unsigned int nCount;
       double      *pPoints;
       int         max_priority;
+      size_t      vbo_offset;
+      wxBoundingBox BBox;
 };
 
 class VC_Element
 {
 public:
-      int         index;
+      unsigned int index;
       double      *pPoint;
 };
 
+WX_DECLARE_OBJARRAY(VE_Element, ArrayOfVE_Elements);
+WX_DECLARE_OBJARRAY(VC_Element, ArrayOfVC_Elements);
+
+typedef std::vector<VE_Element *> VE_ElementVector;
+typedef std::vector<VC_Element *> VC_ElementVector;
 
 
+class line_segment_element
+{
+public:
+    size_t              vbo_offset;
+    size_t              n_points;
+    int                 priority;
+    float               lat_max;                // segment bounding box
+    float               lat_min;
+    float               lon_max;
+    float               lon_min;
+    int                 type;
+    void                *private0;
+    
+    line_segment_element *next;
+};
+
+typedef enum
+{
+    TYPE_CE = 0,
+    TYPE_CC,
+    TYPE_EC,
+    TYPE_EE
+} SegmentType;
+
+class connector_segment
+{
+public:
+    void *start;
+    void *end;
+    SegmentType type;
+    int vbo_offset;
+    int max_priority;
+};
+
+WX_DECLARE_HASH_MAP( int, int, wxIntegerHash, wxIntegerEqual, VectorHelperHash );
+
+WX_DECLARE_HASH_MAP( unsigned int, VE_Element *, wxIntegerHash, wxIntegerEqual, VE_Hash );
+WX_DECLARE_HASH_MAP( unsigned int, VC_Element *, wxIntegerHash, wxIntegerEqual, VC_Hash );
+
+class connector_key
+{
+public:
+    connector_key() 
+    {
+      memset(k, 0 , sizeof k);
+    }
+        
+    connector_key(SegmentType t, int a, int b)
+    {
+      set(t,a,b);
+    }   
+
+    void set(SegmentType t, int a, int b) 
+    {
+      memcpy(k, &a, sizeof a);
+      memcpy(&k[sizeof a], &b, sizeof b);
+      k[sizeof (a) + sizeof (b)] = (unsigned char)t;      
+    }
+
+    unsigned long hash() const;
+ 
+    unsigned char k[sizeof(int) + sizeof(int) + sizeof(char)];
+};
+
+class connHash
+{
+public:
+  connHash() { }
+  unsigned long operator()( const connector_key& k ) const
+  { return k.hash(); }
+  
+  connHash& operator=(const connHash&) { return *this; }
+};
+
+// comparison operator
+class connEqual
+{
+public:
+connEqual() { }
+bool operator()( const connector_key& a, const connector_key& b ) const
+{
+  return memcmp(a.k, b.k, sizeof b.k) == 0; 
+}
+
+connEqual& operator=(const connEqual&) { return *this; }
+};
+
+WX_DECLARE_HASH_MAP( connector_key, connector_segment *, connHash, connEqual, connected_segment_hash );
 
 #endif

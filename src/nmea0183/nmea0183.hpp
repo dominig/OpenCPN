@@ -100,6 +100,8 @@
 #include "gsv.hpp"
 #include "gga.hpp"
 #include "GPwpl.hpp"
+#include "apb.hpp"
+#include "xte.hpp"
 /*
 #include "ROT.hpp"
 #include "RPM.hpp"
@@ -118,7 +120,6 @@
 #include "WCV.hpp"
 #include "WNC.hpp"
 #include "XDR.hpp"
-#include "XTE.hpp"
 #include "XTR.hpp"
 #include "ZDA.hpp"
 #include "ZFO.hpp"
@@ -148,6 +149,8 @@ class NMEA0183
       NMEA0183();
       virtual ~NMEA0183();
 
+      wxArrayString GetRecognizedArray(void);
+      
       /*
       ** NMEA 0183 Sentences we understand
       */
@@ -191,6 +194,8 @@ class NMEA0183
        GSV Gsv;
        GGA Gga;
        GPWPL GPwpl;
+       APB Apb;
+       XTE Xte;
  /*
       ROT Rot;
       RPM Rpm;

@@ -1,4 +1,4 @@
-/******************************************************************************
+/**************************************************************************
 *
 * Project:  ChartManager
 * Purpose:  Basic Chart Info Storage
@@ -20,33 +20,86 @@
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program; if not, write to the                         *
 *   Free Software Foundation, Inc.,                                       *
-*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,  USA.             *
-***************************************************************************
-*
-*/
+*   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,  USA.         *
+**************************************************************************/
 
 #ifndef __CHARTDBS_H__
 #define __CHARTDBS_H__
 
-#include "wx/dynarray.h"
-#include "wx/file.h"
-#include "wx/stream.h"
-#include "wx/wfstream.h"
-#include "wx/tokenzr.h"
-#include "wx/dir.h"
-#include "wx/filename.h"
-
-#include "chartbase.h"
-#include "chart1.h"
+//#include "chart1.h"
+#include "ocpn_types.h"
+#include "bbox.h"
+#include "LLRegion.h"
 
 class wxProgressDialog;
+class ChartBase;
+
+//    A small class used in an array to describe chart directories
+class ChartDirInfo
+{
+public:
+    wxString    fullpath;
+    wxString    magic_number;
+};
+
+WX_DECLARE_OBJARRAY(ChartDirInfo, ArrayOfCDI);
+
 ///////////////////////////////////////////////////////////////////////
 
-static const int DB_VERSION_PREVIOUS = 15;
-static const int DB_VERSION_CURRENT = 16;
+static const int DB_VERSION_PREVIOUS = 17;
+static const int DB_VERSION_CURRENT = 18;
 
 class ChartDatabase;
 class ChartGroupArray;
+
+struct ChartTableEntry_onDisk_18
+{
+    int         EntryOffset;
+    int         ChartType;
+    int         ChartFamily;
+    float       LatMax;
+    float       LatMin;
+    float       LonMax;
+    float       LonMin;
+    
+    int         Scale;
+    int         edition_date;
+    int         file_date;
+    
+    int         nPlyEntries;
+    int         nAuxPlyEntries;
+    
+    float       skew;
+    int         ProjectionType;
+    bool        bValid;
+    
+    int         nNoCovrPlyEntries;
+};
+
+
+struct ChartTableEntry_onDisk_17
+{
+    int         EntryOffset;
+    int         ChartType;
+    float       LatMax;
+    float       LatMin;
+    float       LonMax;
+    float       LonMin;
+
+    int         Scale;
+    int         edition_date;
+    int         file_date;
+
+    int         nPlyEntries;
+    int         nAuxPlyEntries;
+
+    float       skew;
+    int         ProjectionType;
+    bool        bValid;
+
+    int         nNoCovrPlyEntries;
+};
+
 
 struct ChartTableEntry_onDisk_16
 {
@@ -143,12 +196,20 @@ struct ChartTableEntry
     void Disable();
     void SetValid(bool valid) { bValid = valid; }
     time_t GetFileTime() const { return file_date; }
-    int GetnAuxPlyEntries() const { return nAuxPlyEntries; }
+
     int GetnPlyEntries() const { return nPlyEntries; }
     float *GetpPlyTable() const { return pPlyTable; }
+
+    int GetnAuxPlyEntries() const { return nAuxPlyEntries; }
     float *GetpAuxPlyTableEntry(int index) const { return pAuxPlyTable[index];}
     int GetAuxCntTableEntry(int index) const { return pAuxCntTable[index];}
 
+    int GetnNoCovrPlyEntries() const { return nNoCovrPlyEntries; }
+    float *GetpNoCovrPlyTableEntry(int index) const { return pNoCovrPlyTable[index];}
+    int GetNoCovrCntTableEntry(int index) const { return pNoCovrCntTable[index];}
+    
+    const wxBoundingBox &GetBBox() const { return m_bbox; } 
+    
     char *GetpFullPath() const { return pFullPath; }
     float GetLonMax() const { return LonMax; }
     float GetLonMin() const { return LonMin; }
@@ -162,12 +223,19 @@ struct ChartTableEntry
 
     bool GetbValid(){ return bValid;}
     void SetEntryOffset(int n) { EntryOffset = n;}
-    ArrayOfInts &GetGroupArray(void){ return m_GroupArray; }
-    wxString *GetpFileName(void){ return m_pfilename; }
+    const wxString *GetpFileName(void) const { return m_pfilename; }
+    wxString *GetpsFullPath(void){ return m_psFullPath; }
+    
+    const ArrayOfInts &GetGroupArray(void) const { return m_GroupArray; }
+    void ClearGroupArray(void) { m_GroupArray.Clear(); }
+    void AddIntToGroupArray( int val ) { m_GroupArray.Add( val ); }
+    void SetAvailable(bool avail ){ m_bavail = avail;}
 
+    LLRegion quilt_candidate_region;
   private:
     int         EntryOffset;
     int         ChartType;
+    int         ChartFamily;
     float       LatMax;
     float       LatMin;
     float       LonMax;
@@ -184,8 +252,15 @@ struct ChartTableEntry
     float       Skew;
     int         ProjectionType;
     bool        bValid;
+    int         nNoCovrPlyEntries;
+    int         *pNoCovrCntTable;
+    float       **pNoCovrPlyTable;
+    
     ArrayOfInts m_GroupArray;
     wxString    *m_pfilename;             // a helper member, not on disk
+    wxString    *m_psFullPath;
+    wxBoundingBox m_bbox;
+    bool        m_bavail;
 };
 
 enum
@@ -197,7 +272,7 @@ enum
 class ChartClassDescriptor
 {
 public:
-      ChartClassDescriptor();
+      ChartClassDescriptor(){};
       virtual ~ChartClassDescriptor(){}
 
       ChartClassDescriptor(wxString classn, wxString mask, int type)
@@ -228,16 +303,23 @@ public:
     bool Read(const wxString &filePath);
     bool Write(const wxString &filePath);
 
-    wxString &GetDBFileName(){ return m_DBFileName; }
+    bool AddSingleChart( wxString &fullpath, bool b_force_full_search = true );
+    bool RemoveSingleChart( wxString &ChartFullPath );
+    
+    const wxString & GetDBFileName() const { return m_DBFileName; }
     ArrayOfCDI& GetChartDirArray(){ return m_dir_array; }
     wxArrayString &GetChartDirArrayString(){ return m_chartDirs; }
-
+    void SetChartDirArray( ArrayOfCDI array ){ m_dir_array = array; }
+    bool CompareChartDirArray( ArrayOfCDI& test_array );
+    wxString GetMagicNumberCached(wxString dir);
+    
     void UpdateChartClassDescriptorArray(void);
 
-    int GetChartTableEntries() const { return chartTable.size(); }
+    int GetChartTableEntries() const { return active_chartTable.size(); }
     const ChartTableEntry &GetChartTableEntry(int index) const;
     ChartTableEntry *GetpChartTableEntry(int index) const;
-
+    inline ChartTable &GetChartTable(){ return active_chartTable; }
+    
     bool IsValid() const { return bValid; }
     int DisableChart(wxString& PathToDisable);
     bool GetCentroidOfLargestScaleChart(double *clat, double *clon, ChartFamilyEnum family);
@@ -248,6 +330,8 @@ public:
     int GetDBChartScale(int dbIndex);
 
     bool GetDBBoundingBox(int dbindex, wxBoundingBox *box);
+    const wxBoundingBox &GetDBBoundingBox(int dbIndex);
+    
     int  GetnAuxPlyEntries(int dbIndex);
     int  GetDBPlyPoint(int dbIndex, int plyindex, float *lat, float *lon);
     int  GetDBAuxPlyPoint(int dbIndex, int plyindex, int iAuxPly, float *lat, float *lon);
@@ -256,7 +340,9 @@ public:
     int FinddbIndex(wxString PathToFind);
     wxString GetDBChartFileName(int dbIndex);
     void ApplyGroupArray(ChartGroupArray *pGroupArray);
-
+    bool IsChartAvailable( int dbIndex );
+    ChartTable    active_chartTable;
+    
 protected:
     virtual ChartBase *GetChart(const wxChar *theFilePath, ChartClassDescriptor &chart_desc) const;
     int AddChartDirectory(const wxString &theDir, bool bshow_prog);
@@ -272,18 +358,26 @@ private:
     int SearchDirAndAddCharts(wxString& dir_name_base, ChartClassDescriptor &chart_desc, wxProgressDialog *pprog);
 
     int TraverseDirAndAddCharts(ChartDirInfo& dir_info, wxProgressDialog *pprog, wxString& dir_magic, bool bForce);
-    bool DetectDirChange(wxString dir_path, wxString magic, wxString &new_magic, wxProgressDialog *pprog);
+    bool DetectDirChange(const wxString & dir_path, const wxString & magic, wxString &new_magic, wxProgressDialog *pprog);
+
+    bool AddChart( wxString &chartfilename, ChartClassDescriptor &chart_desc, wxProgressDialog *pprog,
+                   int isearch, bool bthis_dir_in_dB );
 
     bool Check_CM93_Structure(wxString dir_name);
 
     bool          bValid;
     wxArrayString m_chartDirs;
     int           m_dbversion;
-    ChartTable    chartTable;
 
     ChartTableEntry           m_ChartTableEntryDummy;   // used for return value if database is not valid
     wxString      m_DBFileName;
+    
+    int           m_pdifile;
+    int           m_pdnFile;
+    
+    int         m_nentries;
 
+    wxBoundingBox m_dummy_bbox;
 };
 
 
@@ -293,8 +387,8 @@ private:
 class ChartGroupElement;
 class ChartGroup;
 
-WX_DECLARE_OBJARRAY(ChartGroupElement*, ChartGroupElementArray);
-WX_DECLARE_OBJARRAY(ChartGroup*, ChartGroupArray);
+WX_DEFINE_ARRAY_PTR(ChartGroupElement*, ChartGroupElementArray);
+WX_DEFINE_ARRAY_PTR(ChartGroup*, ChartGroupArray);
 
 class ChartGroupElement
 {
@@ -308,6 +402,9 @@ public:
 class ChartGroup
 {
 public:
+      ChartGroup(){};
+      ~ChartGroup(){ for (unsigned int i=0 ; i < m_element_array.GetCount() ; i++){ delete m_element_array.Item(i);}}
+      
       wxString                m_group_name;
       ChartGroupElementArray  m_element_array;
 };

@@ -92,6 +92,7 @@ typedef struct {
       int nvert;
       int *vertex_index_list;
       void *poly_next;
+      int index_hash;
 } polyout;
 
 
@@ -151,6 +152,7 @@ extern int int_trapezate_polygon(int, int[], double (*)[2], itrap_t **, isegment
 extern int is_point_inside_polygon(double *);
 //extern polyout *trapezate_polygon(int, int *, double (*)[2]);
 
+polyout  *do_triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2]);
 
 
 
@@ -242,5 +244,16 @@ extern int choose_segment(void);
 extern int read_segments(char *, int *);
 extern int math_logstar_n(int);
 extern int math_N(int, int);
+
+#if __GNUC__ == 5
+extern inline int int_greater_than(ipoint_t *v0, ipoint_t *v1);
+extern inline int int_equal_to(ipoint_t *v0, ipoint_t *v1);
+extern inline int int_greater_than_equal_to(ipoint_t *v0, ipoint_t *v1);
+extern inline int int_less_than(ipoint_t *v0, ipoint_t *v1);
+#ifndef __clang__
+extern inline int int_locate_endpoint_a(ipoint_t *v, ipoint_t *vo, int r);
+#endif
+extern inline int int_locate_endpoint(ipoint_t *v, ipoint_t *vo, int r);
+#endif
 
 #endif /* triangulate_h */

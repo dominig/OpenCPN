@@ -62,7 +62,7 @@ class DashboardInstrument_Wind: public DashboardInstrument_Dial
       private:
 
       protected:
-            void DrawBackground(wxBufferedDC* dc);
+            void DrawBackground(wxGCDC* dc);
 };
 
 class DashboardInstrument_WindCompass: public DashboardInstrument_Dial
@@ -75,7 +75,49 @@ class DashboardInstrument_WindCompass: public DashboardInstrument_Dial
       private:
 
       protected:
-            void DrawBackground(wxBufferedDC* dc);
+            void DrawBackground(wxGCDC* dc);
+};
+
+class DashboardInstrument_TrueWindAngle: public DashboardInstrument_Dial
+{
+      public:
+            DashboardInstrument_TrueWindAngle( wxWindow *parent, wxWindowID id, wxString title, int cap_flag);
+
+            ~DashboardInstrument_TrueWindAngle(void){}
+
+      private:
+
+      protected:
+
+            void DrawBackground(wxGCDC* dc);
+};
+/*****************************************************************************
+Apparent & True wind angle combined in one dial instrument
+Author: Thomas Rauch
+******************************************************************************/
+class DashboardInstrument_AppTrueWindAngle : public DashboardInstrument_Dial
+{
+public:
+	DashboardInstrument_AppTrueWindAngle(wxWindow *parent, wxWindowID id, wxString title, int cap_flag);
+
+	~DashboardInstrument_AppTrueWindAngle(void){}
+	void SetData(int, double, wxString);
+
+
+private:
+
+protected:
+	double m_MainValueApp, m_MainValueTrue;
+	double m_ExtraValueApp, m_ExtraValueTrue;
+
+	wxString m_ExtraValueAppUnit, m_ExtraValueTrueUnit, m_MainValueAppUnit, m_MainValueTrueUnit;
+	DialPositionOption m_MainValueOption1, m_MainValueOption2, m_ExtraValueOption1, m_ExtraValueOption2;
+	void DrawBackground(wxGCDC* dc);
+	virtual void Draw(wxGCDC* dc);
+	virtual void DrawForeground(wxGCDC* dc);
+	virtual void DrawData(wxGCDC* dc, double value, wxString unit, wxString format, DialPositionOption position);
+
+
 };
 
 #endif // __Wind_H__

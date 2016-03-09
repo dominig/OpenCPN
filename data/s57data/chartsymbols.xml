@@ -1,4 +1,4 @@
-<chartsymbols>	
+<chartsymbols>
 	<color-tables>
 		<color-table name="DAY_BRIGHT">
 			<graphics-file name="rastersymbols-day.png" />
@@ -2508,8 +2508,7 @@
 			<disp-prio>Area 2</disp-prio>
 			<radar-prio>Supressed</radar-prio>
 			<table-name>Plain</table-name>
-			<attrib-code index="0">CATVEG13</attrib-code>
-			<instruction>AP(VEGATN03);LS(DASH,1,LANDF)</instruction>
+			<instruction>AP(CROSSX02);LS(DASH,1,LANDF)</instruction>
 			<display-cat>Other</display-cat>
 			<comment>32030</comment>
 		</lookup>
@@ -5840,8 +5839,7 @@
 			<disp-prio>Area 2</disp-prio>
 			<radar-prio>Supressed</radar-prio>
 			<table-name>Symbolized</table-name>
-			<attrib-code index="0">CATVEG13</attrib-code>
-			<instruction>AP(VEGATN03);LS(DASH,1,LANDF)</instruction>
+			<instruction>AP(CROSSX02);LS(DASH,1,LANDF)</instruction>
 			<display-cat>Other</display-cat>
 			<comment>32030</comment>
 		</lookup>
@@ -10693,7 +10691,7 @@
 			<table-name>Simplified</table-name>
 			<attrib-code index="0">CATSPM54</attrib-code>
 			<attrib-code index="1">BOYSHP4</attrib-code>
-			<instruction>SY(BOYSPP35);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<instruction>SY(BOYSPP11);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>27010</comment>
 		</lookup>
@@ -10704,7 +10702,7 @@
 			<table-name>Simplified</table-name>
 			<attrib-code index="0">CATSPM54</attrib-code>
 			<attrib-code index="1">BOYSHP5</attrib-code>
-			<instruction>SY(BOYSPP35);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<instruction>SY(BOYSPP11);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>27010</comment>
 		</lookup>
@@ -10764,7 +10762,7 @@
 			<radar-prio>On Top</radar-prio>
 			<table-name>Simplified</table-name>
 			<attrib-code index="0">BOYSHP4</attrib-code>
-			<instruction>SY(BOYSPP35);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<instruction>SY(BOYSPP11);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>27010</comment>
 		</lookup>
@@ -10774,7 +10772,7 @@
 			<radar-prio>On Top</radar-prio>
 			<table-name>Simplified</table-name>
 			<attrib-code index="0">BOYSHP5</attrib-code>
-			<instruction>SY(BOYSPP35);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<instruction>SY(BOYSPP11);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>27010</comment>
 		</lookup>
@@ -10804,7 +10802,7 @@
 			<radar-prio>On Top</radar-prio>
 			<table-name>Simplified</table-name>
 			<attrib-code index="0">BOYSHP8</attrib-code>
-			<instruction>SY(BOYSPP35);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<instruction>SY(BOYSPP11);TE('by %s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>27010</comment>
 		</lookup>
@@ -12795,11 +12793,11 @@
 		</lookup>
 		<lookup id="1262" RCID="31314" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>No data</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>Supressed</radar-prio>
 			<table-name>Simplified</table-name>
 			<instruction></instruction>
-			<display-cat />
+			<display-cat>Standard</display-cat>
 			<comment>0</comment>
 		</lookup>
 		<lookup id="1263" RCID="31315" name="TOWERS">
@@ -20227,7 +20225,7 @@
 			<display-cat>Standard</display-cat>
 			<comment>17010</comment>
 		</lookup>
-		
+
 		<lookup id="1971" RCID="30242" name="BOYSPP">
 			<type>Point</type>
 			<disp-prio>Hazards</disp-prio>
@@ -24607,7 +24605,7 @@
 		</lookup>
 		<lookup id="2380" RCID="30537" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -24619,7 +24617,7 @@
 		</lookup>
 		<lookup id="2381" RCID="93991" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP24</attrib-code>
@@ -24631,7 +24629,7 @@
 		</lookup>
 		<lookup id="2382" RCID="93871" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP3</attrib-code>
@@ -24643,7 +24641,7 @@
 		</lookup>
 		<lookup id="2383" RCID="93887" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP3</attrib-code>
@@ -24655,7 +24653,7 @@
 		</lookup>
 		<lookup id="2384" RCID="93952" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24667,7 +24665,7 @@
 		</lookup>
 		<lookup id="2385" RCID="93990" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP7</attrib-code>
@@ -24690,7 +24688,7 @@
 		</lookup>
 		<lookup id="2387" RCID="93956" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24701,7 +24699,7 @@
 		</lookup>
 		<lookup id="2388" RCID="93957" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24712,7 +24710,7 @@
 		</lookup>
 		<lookup id="2389" RCID="93910" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP23</attrib-code>
@@ -24723,7 +24721,7 @@
 		</lookup>
 		<lookup id="2390" RCID="93955" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24734,7 +24732,7 @@
 		</lookup>
 		<lookup id="2391" RCID="93954" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24745,7 +24743,7 @@
 		</lookup>
 		<lookup id="2392" RCID="93850" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP10</attrib-code>
@@ -24756,7 +24754,7 @@
 		</lookup>
 		<lookup id="2393" RCID="93848" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP11</attrib-code>
@@ -24767,7 +24765,7 @@
 		</lookup>
 		<lookup id="2394" RCID="93971" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -24778,7 +24776,7 @@
 		</lookup>
 		<lookup id="2395" RCID="93908" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -24789,7 +24787,7 @@
 		</lookup>
 		<lookup id="2396" RCID="93897" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -24800,7 +24798,7 @@
 		</lookup>
 		<lookup id="2397" RCID="93907" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -24811,7 +24809,7 @@
 		</lookup>
 		<lookup id="2398" RCID="93832" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP13</attrib-code>
@@ -24822,7 +24820,7 @@
 		</lookup>
 		<lookup id="2399" RCID="93852" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP14</attrib-code>
@@ -24833,7 +24831,7 @@
 		</lookup>
 		<lookup id="2400" RCID="93911" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP17</attrib-code>
@@ -24844,7 +24842,7 @@
 		</lookup>
 		<lookup id="2401" RCID="93824" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP17</attrib-code>
@@ -24855,7 +24853,7 @@
 		</lookup>
 		<lookup id="2402" RCID="93899" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP19</attrib-code>
@@ -24866,7 +24864,7 @@
 		</lookup>
 		<lookup id="2403" RCID="93900" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP22</attrib-code>
@@ -24877,7 +24875,7 @@
 		</lookup>
 		<lookup id="2404" RCID="93992" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP24</attrib-code>
@@ -24888,7 +24886,7 @@
 		</lookup>
 		<lookup id="2405" RCID="93969" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP1</attrib-code>
@@ -24899,7 +24897,7 @@
 		</lookup>
 		<lookup id="2406" RCID="93872" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP1</attrib-code>
@@ -24910,7 +24908,7 @@
 		</lookup>
 		<lookup id="2407" RCID="93888" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP2</attrib-code>
@@ -24921,7 +24919,7 @@
 		</lookup>
 		<lookup id="2408" RCID="93833" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP3</attrib-code>
@@ -24932,7 +24930,7 @@
 		</lookup>
 		<lookup id="2409" RCID="93909" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP3</attrib-code>
@@ -24943,7 +24941,7 @@
 		</lookup>
 		<lookup id="2410" RCID="93876" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP4</attrib-code>
@@ -24954,7 +24952,7 @@
 		</lookup>
 		<lookup id="2411" RCID="93828" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP5</attrib-code>
@@ -24965,7 +24963,7 @@
 		</lookup>
 		<lookup id="2412" RCID="93891" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP5</attrib-code>
@@ -24976,7 +24974,7 @@
 		</lookup>
 		<lookup id="2413" RCID="93953" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24987,7 +24985,7 @@
 		</lookup>
 		<lookup id="2414" RCID="93951" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -24998,7 +24996,7 @@
 		</lookup>
 		<lookup id="2415" RCID="93890" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP7</attrib-code>
@@ -25009,7 +25007,7 @@
 		</lookup>
 		<lookup id="2416" RCID="93870" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP7</attrib-code>
@@ -25020,7 +25018,7 @@
 		</lookup>
 		<lookup id="2417" RCID="93905" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP8</attrib-code>
@@ -25031,7 +25029,7 @@
 		</lookup>
 		<lookup id="2418" RCID="93836" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP10</attrib-code>
@@ -25041,7 +25039,7 @@
 		</lookup>
 		<lookup id="2419" RCID="93837" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP11</attrib-code>
@@ -25051,7 +25049,7 @@
 		</lookup>
 		<lookup id="2420" RCID="93829" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP12</attrib-code>
@@ -25061,7 +25059,7 @@
 		</lookup>
 		<lookup id="2421" RCID="93838" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP13</attrib-code>
@@ -25071,7 +25069,7 @@
 		</lookup>
 		<lookup id="2422" RCID="93839" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP14</attrib-code>
@@ -25081,7 +25079,7 @@
 		</lookup>
 		<lookup id="2423" RCID="93825" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP17</attrib-code>
@@ -25091,7 +25089,7 @@
 		</lookup>
 		<lookup id="2424" RCID="93847" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP19</attrib-code>
@@ -25101,7 +25099,7 @@
 		</lookup>
 		<lookup id="2425" RCID="93841" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP20</attrib-code>
@@ -25111,7 +25109,7 @@
 		</lookup>
 		<lookup id="2426" RCID="93842" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP21</attrib-code>
@@ -25121,7 +25119,7 @@
 		</lookup>
 		<lookup id="2427" RCID="93843" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP22</attrib-code>
@@ -25131,7 +25129,7 @@
 		</lookup>
 		<lookup id="2428" RCID="93844" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP23</attrib-code>
@@ -25141,7 +25139,7 @@
 		</lookup>
 		<lookup id="2429" RCID="93845" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP24</attrib-code>
@@ -25151,7 +25149,7 @@
 		</lookup>
 		<lookup id="2430" RCID="93846" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP25</attrib-code>
@@ -25161,7 +25159,7 @@
 		</lookup>
 		<lookup id="2431" RCID="93855" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP26</attrib-code>
@@ -25171,7 +25169,7 @@
 		</lookup>
 		<lookup id="2432" RCID="93901" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP27</attrib-code>
@@ -25181,7 +25179,7 @@
 		</lookup>
 		<lookup id="2433" RCID="93904" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP28</attrib-code>
@@ -25191,7 +25189,7 @@
 		</lookup>
 		<lookup id="2434" RCID="93935" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP29</attrib-code>
@@ -25201,7 +25199,7 @@
 		</lookup>
 		<lookup id="2435" RCID="93936" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP30</attrib-code>
@@ -25211,7 +25209,7 @@
 		</lookup>
 		<lookup id="2436" RCID="93937" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP31</attrib-code>
@@ -25221,7 +25219,7 @@
 		</lookup>
 		<lookup id="2437" RCID="93938" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP32</attrib-code>
@@ -25231,7 +25229,7 @@
 		</lookup>
 		<lookup id="2438" RCID="93915" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP33</attrib-code>
@@ -25241,7 +25239,7 @@
 		</lookup>
 		<lookup id="2439" RCID="93892" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP98</attrib-code>
@@ -25251,7 +25249,7 @@
 		</lookup>
 		<lookup id="2440" RCID="93895" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP99</attrib-code>
@@ -25261,7 +25259,7 @@
 		</lookup>
 		<lookup id="2441" RCID="94011" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">COLOUR3</attrib-code>
@@ -25271,7 +25269,7 @@
 		</lookup>
 		<lookup id="2441" RCID="940111" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">COLOUR3</attrib-code>
@@ -25282,7 +25280,7 @@
 		</lookup>
 		<lookup id="2442" RCID="94012" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">COLOUR4</attrib-code>
@@ -25292,7 +25290,7 @@
 		</lookup>
 		<lookup id="2442" RCID="940121" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">COLOUR4</attrib-code>
@@ -25303,7 +25301,7 @@
 		</lookup>
 		<lookup id="2443" RCID="93827" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP1</attrib-code>
@@ -25313,7 +25311,7 @@
 		</lookup>
 		<lookup id="2444" RCID="93826" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP2</attrib-code>
@@ -25323,7 +25321,7 @@
 		</lookup>
 		<lookup id="2445" RCID="93835" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP3</attrib-code>
@@ -25333,7 +25331,7 @@
 		</lookup>
 		<lookup id="2446" RCID="93874" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP4</attrib-code>
@@ -25343,7 +25341,7 @@
 		</lookup>
 		<lookup id="2447" RCID="93834" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP5</attrib-code>
@@ -25353,7 +25351,7 @@
 		</lookup>
 		<lookup id="2448" RCID="93878" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP6</attrib-code>
@@ -25363,7 +25361,7 @@
 		</lookup>
 		<lookup id="2449" RCID="93840" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP7</attrib-code>
@@ -25373,7 +25371,7 @@
 		</lookup>
 		<lookup id="2450" RCID="93880" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP8</attrib-code>
@@ -25383,7 +25381,7 @@
 		</lookup>
 		<lookup id="2451" RCID="93912" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<attrib-code index="0">TOPSHP9</attrib-code>
@@ -25393,7 +25391,7 @@
 		</lookup>
 		<lookup id="2452" RCID="30539" name="TOPMAR">
 			<type>Point</type>
-			<disp-prio>Area Symbol</disp-prio>
+			<disp-prio>Point Symbol</disp-prio>
 			<radar-prio>On Top</radar-prio>
 			<table-name>Paper</table-name>
 			<instruction>SY(TOPMAR01)</instruction>
@@ -26406,6 +26404,28 @@
 			<attrib-code index="0">BOYSHP2</attrib-code>
 			<attrib-code index="1">COLOUR3,1,3,1</attrib-code>
 			<instruction>SY(BOYCAN74);TE('%s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<display-cat>Standard</display-cat>
+			<comment>17010</comment>
+		</lookup>
+		<lookup id="2551" RCID="3061901" name="boylat">
+			<type>Point</type>
+			<disp-prio>Hazards</disp-prio>
+			<radar-prio>On Top</radar-prio>
+			<table-name>Paper</table-name>
+			<attrib-code index="0">BOYSHP5</attrib-code>
+			<attrib-code index="1">COLOUR4,1,4,1</attrib-code>
+			<instruction>SY(BCNGEN65);TE('%s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
+			<display-cat>Standard</display-cat>
+			<comment>17010</comment>
+		</lookup>
+		<lookup id="2552" RCID="3062001" name="boylat">
+			<type>Point</type>
+			<disp-prio>Hazards</disp-prio>
+			<radar-prio>On Top</radar-prio>
+			<table-name>Paper</table-name>
+			<attrib-code index="0">BOYSHP5</attrib-code>
+			<attrib-code index="1">COLOUR3,1,3,1</attrib-code>
+			<instruction>SY(BCNGEN64);TE('%s','OBJNAM',2,1,2,'15110',-1,-1,CHBLK,21)</instruction>
 			<display-cat>Standard</display-cat>
 			<comment>17010</comment>
 		</lookup>
@@ -30894,6 +30914,63 @@
 			<display-cat>Standard</display-cat>
 			<comment>10000</comment>
 		</lookup>
+                <lookup id="1996" RCID="54023" name="ANNOTA">
+                        <type>Point</type>
+                        <disp-prio>Area 2</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Paper</table-name>
+                        <instruction>TX(ANTXT1,3,2,2,'15114',1,0,CHBLK,26)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>54023</comment>
+                </lookup>
+                <lookup id="1733" RCID="54024" name="RESTRC">
+                        <type>Line</type>
+                        <disp-prio>Area Symbol</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Lines</table-name>
+                        <instruction>LS(DASH,1,CHMGD)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>24010</comment>
+                </lookup>
+                <lookup id="1733" RCID="54025" name="TRFLNE">
+                        <type>Line</type>
+                        <disp-prio>Area Symbol</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Lines</table-name>
+                        <instruction>LS(DASH,2,CHMGD)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>24010</comment>
+                </lookup>
+                <lookup id="1733" RCID="54026" name="GENNAV">
+                        <type>Point</type>
+                        <disp-prio>Hazards</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Paper</table-name>
+                        <attrib-code index="0">BCNSHP3</attrib-code>
+                        <instruction>SY(BCNTOW01);TE('%s','OBJNAM',2,1,2,'15110',-1,-2,CHBLK,21)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>17020</comment>
+                </lookup>
+                <lookup id="1996" RCID="54027" name="ANNOTA">
+                        <type>Point</type>
+                        <disp-prio>Area 2</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Simplified</table-name>
+                        <instruction>TX(ANTXT1,3,2,2,'15114',1,0,CHBLK,26)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>54023</comment>
+                </lookup>
+                <lookup id="1997" RCID="54028" name="GENNAV">
+                        <type>Point</type>
+                        <disp-prio>Hazards</disp-prio>
+                        <radar-prio>On Top</radar-prio>
+                        <table-name>Simplified</table-name>
+                        <instruction>SY(BCNTOW01);TE('%s','OBJNAM',2,1,2,'15110',-1,-2,CHBLK,21)</instruction>
+                        <display-cat>Standard</display-cat>
+                        <comment>17020</comment>
+                </lookup>
+
+
 	</lookups>
 
 	<line-styles>
@@ -30930,6 +31007,17 @@
 			<HPGL>SPA;SW2;PU2105,1470;PD2409,1470;SPA;SW2;PU2261,1470;PD2261,1620;</HPGL>
 			<color-ref>ACHGRD</color-ref>
 		</line-style>
+                <line-style RCID="3192">
+                        <name>ESSARE01</name>
+                        <vector width="304" height="150">
+                                <distance min="0" max="0" />
+                                <pivot x="1904" y="1468" />
+                                <origin x="2105" y="1470" />
+                        </vector>
+                        <description>ESSA or PSSA boundary</description>
+                        <HPGL>SPA;SW2;PU2105,1470;PD2409,1470;SPA;SW2;PU2261,1470;PD2261,1620;</HPGL>
+                        <color-ref>ACHMGD</color-ref>
+                </line-style>
 		<line-style RCID="3347">
 			<name>CBLARE51</name>
 			<vector width="2739" height="500">
@@ -31946,7 +32034,7 @@
 			<filltype>L</filltype>
 			<spacing>C</spacing>
 			<description>area of depth less than the safety contour</description>
-			<bitmap width="9" height="9">
+			<bitmap width="32" height="32">
 				<distance min="0" max="0" />
 				<pivot x="5" y="5" />
 				<origin x="0" y="0" />
@@ -31954,9 +32042,39 @@
 			</bitmap>
 			<color-ref>ACHGRD</color-ref>
 		</pattern>
-	</patterns>
 
-	<symbols>		
+		<pattern RCID="3">
+                        <name>CROSSX01</name>
+                        <definition>R</definition>
+                        <filltype>L</filltype>
+                        <spacing>C</spacing>
+                        <description>General Cross Hatch pattern, Angle 0</description>
+                        <bitmap width="16" height="16">
+                                <distance min="0" max="0" />
+                                <pivot x="8" y="8" />
+                                <origin x="0" y="0" />
+                                <graphics-location x="400" y="1040" />
+                        </bitmap>
+                        <color-ref>ACHBRN</color-ref>
+                </pattern>
+
+                <pattern RCID="4">
+                        <name>CROSSX02</name>
+                        <definition>R</definition>
+                        <filltype>L</filltype>
+                        <spacing>C</spacing>
+                        <description>General small dot pattern</description>
+                        <bitmap width="16" height="16">
+                                <distance min="0" max="0" />
+                                <pivot x="8" y="8" />
+                                <origin x="0" y="0" />
+                                <graphics-location x="430" y="1040" />
+                        </bitmap>
+                        <color-ref>ACHBRN</color-ref>
+                </pattern>
+        </patterns>
+
+	<symbols>
 
 		<symbol RCID="2035">
 			<name>ACHARE02</name>
@@ -33780,6 +33898,7 @@
 				<origin x="684" y="362" />
 				<HPGL>SPA;SW1;PU685,1257;PD785,1058;PD884,1257;SPA;SW1;PU685,1073;PD785,874;PD884,1073;SPA;SW1;PU785,362;PD785,1270;SPA;SW1;PU684,611;PD786,364;PD886,611;</HPGL>
 			</vector>
+                        <prefer-bitmap>no</prefer-bitmap>
                         <definition>V</definition>
 		</symbol>
 
@@ -38408,6 +38527,7 @@
 				<HPGL>SPI;ST2;PU1500,1500;PM0;PD1375,937,1375,912,1381,875,1400,843,1418,825,1450,800,1493,800,1531,800,1556,806,1593,831;PD1606,868,1612,900,1612,931,1500,1500;PM2;FP;SPI;SW1;PU1500,1500;PD1375,925;PD1375,887;PD1387,850;PD1406,831;PD1437,806;PD1475,800;PD1500,800;PD1531,800;PD1562,812;PD1587,837;PD1606,875;PD1612,900;PD1606,956;PD1500,1500;</HPGL>
 			</vector>
 			<definition>V</definition>
+                        <prefer-bitmap>no</prefer-bitmap>
 		</symbol>
 
 		<symbol RCID="32">

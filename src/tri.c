@@ -101,17 +101,13 @@ Bibliography:
 
 #include "triangulate.h"
 
-#ifdef __MSVC__
+#if defined(__MSVC__)
 #include <windows.h>
-#endif
+#else
 
-#ifndef __MSVC__
 #include <signal.h>
 #include <setjmp.h>
-#endif
 
-
-#ifndef __MSVC__
 extern struct sigaction sa_all;
 extern struct sigaction sa_all_old;
 extern jmp_buf           env;                    // the context saved by setjmp();
@@ -129,6 +125,21 @@ static int nrecurse;
 # define inline __inline
 #endif // defined( _MSC_VER ) && !defined( __cplusplus )
 
+//      And Mac is fussy about c99 conpliance...
+#if defined(__clang__) && __clang__
+# define inline static inline
+#endif
+
+#ifdef __MSVC__
+DWORD filter(EXCEPTION_POINTERS * eps)
+{
+    if (eps->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
+        return EXCEPTION_EXECUTE_HANDLER;
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
+EXCEPTION_POINTERS * eps = 0;
+#endif
 
 #ifdef STANDALONE
 
@@ -207,7 +218,9 @@ static int *visited;
 static int *permute;
 static int *triangles;
 static int *rc;
+static int rc_size;
 
+static int g_bug;
 #endif
 
 
@@ -237,6 +250,9 @@ static int alloc_mem(int ncontours, int contours[])
     {
         nsegp += contours[i]+4;
     }
+    
+    nsegp *= 2;
+    
     seg = (segment_t *)calloc(nsegp * sizeof(segment_t), 1);
     tr = (trap_t *)calloc(nsegp * 5 * sizeof(trap_t), 1);
     qs = (node_t *)calloc(nsegp * 10 * sizeof(node_t), 1);
@@ -248,9 +264,9 @@ static int alloc_mem(int ncontours, int contours[])
     visited = (int *)calloc(nsegp * 5 * sizeof(int), 1);
     permute = (int *)calloc(nsegp * sizeof(int), 1);
 
-    triangles = (int *)calloc(nsegp * 10 * sizeof(int), 1);
+    triangles = (int *)calloc(nsegp * 10 * 3 * sizeof(int), 1);
     rc = (int *)calloc(nsegp * 10 * sizeof(int), 1);
-
+    rc_size = nsegp * 10 * sizeof(int);
 //    printf("alloc nsegp = %d\n", nsegp);
 
 #endif
@@ -439,6 +455,52 @@ polyout *trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2])
   return top;
 }
 
+polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
+{
+    polyout  *ret_val;
+    
+    //    In a MS WIndows environment, use SEH to catch bad code in the tesselator
+    //    Polygons producing faults will not be drawn
+#if defined(__MSVC__)
+    __try
+    {
+        ret_val = do_triangulate_polygon(ncontours, cntr, vertices);
+    }
+    __except (eps = GetExceptionInformation(), filter(eps))
+    {
+        ret_val = NULL;
+    }
+#elif defined(__MINGW32__)
+    /* for now, don't catch exceptions in windows with mingw compiler */
+    ret_val = do_triangulate_polygon(ncontours, cntr, vertices);
+#else
+    //    In a Posix environment, use sigaction, etc.. to catch bad code in the tesselator
+    //    Polygons producing faults will not be drawn
+    
+    sigaction(SIGSEGV, &sa_all, &sa_all_old);             // save existing action for this signal
+    
+    if(sigsetjmp(env, 1))             //  Something in the below code block faulted....
+      {
+          
+          ret_val = 0;
+          
+          sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+          
+          return ret_val;
+      }
+      
+      ret_val = do_triangulate_polygon(ncontours, cntr, vertices);
+      
+      sigaction(SIGSEGV, &sa_all_old, NULL);        // reset signal handler
+      
+#endif
+      
+      return ret_val;
+}
+
+
+
+
 
 
 /* Input specified as contours.
@@ -463,7 +525,7 @@ polyout *trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2])
  */
 
 
-polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
+polyout  *do_triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
 {
   register int i;
   int nmonpoly, ccount, npoints, genus;
@@ -472,6 +534,8 @@ polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
   int p, q;
   int vt0, vt1;
   int vfirst;
+  int a,b,c,d;
+  
 
   polyout *top;
   polyout *pp;
@@ -537,7 +601,7 @@ polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
   //    is some over-writing of input data somewhere.
   //    Check for these conditions peephole-wise, and ignore
   //    any triangualtion results if found.   Sigh....
-  //    Todo:  Look at this some more
+  //    TODO:  Look at this some more
 
   for (i = 0; i < nmonpoly; i++)
   {
@@ -560,8 +624,8 @@ polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
               q = mchain[q].next;
           }
 
-          if(vert[vt0].pt.y < 5.0)
-              return NULL;
+//          if(vert[vt0].pt.y < 5.0)
+//              return NULL;
 
           p = mchain[p].next;
       }
@@ -594,6 +658,51 @@ polyout  *triangulate_polygon(int ncontours, int cntr[], double (*vertices)[2])
       pp->vertex_index_list[1] = triangles[(i*3) + 1];
       pp->vertex_index_list[2] = triangles[(i*3) + 2];
 
+      //        Create a hash of triangle index list to assist in finding duplicates later
+      a =  pp->vertex_index_list[0];
+      b =  pp->vertex_index_list[1];
+      c =  pp->vertex_index_list[2];
+      
+      //        Sort the list, manually....Sorry....
+      if(a > b){
+          d=a;
+          a=b;
+          b=d;
+      }
+      if(c < a){
+          d=c;
+          c=b;
+          b=d;
+          d=b;
+          b=a;
+          a=d;
+      }
+      if(c < b){
+          d=c;
+          c=b;
+          b=d;
+      }
+      
+      
+      // FNV1a, 32 bits, byte inputs, manually unrolled
+      pp->index_hash = 2166136261U;
+      
+      pp->index_hash = pp->index_hash ^ (a & 255);
+      pp->index_hash = pp->index_hash * 16777619;
+      pp->index_hash = pp->index_hash ^ (a >> 8);
+      pp->index_hash = pp->index_hash * 16777619;
+      
+      pp->index_hash = pp->index_hash ^ (b & 255);
+      pp->index_hash = pp->index_hash * 16777619;
+      pp->index_hash = pp->index_hash ^ (b >> 8);
+      pp->index_hash = pp->index_hash * 16777619;
+      
+      pp->index_hash = pp->index_hash ^ (c & 255);
+      pp->index_hash = pp->index_hash * 16777619;
+      pp->index_hash = pp->index_hash ^ (c >> 8);
+      pp->index_hash = pp->index_hash * 16777619;
+      
+      
      if(NULL != pplast)
           pplast->poly_next = pp;
 
@@ -729,8 +838,8 @@ int generate_random_ordering(int n)
 
     //Todo Why does this matter?  Get faults on US5VA19M if random.
   //    Fixed, not random
-//  for (i = 1; i <= n; i++)
-//      permute[i] = i;
+  for (i = 1; i <= n; i++)
+      permute[i] = i;
 
 
   free(st);
@@ -864,7 +973,7 @@ int math_N(int n, int h)
 static int chain_idx, op_idx, mon_idx;
 
 
-static int triangulate_single_polygon(int, int, int, int (*)[3]);
+static int triangulate_single_polygon(int, int, int, int, int (*)[3]);
 static int traverse_polygon(int, int, int, int);
 
 /* Function returns TRUE if the trapezoid lies inside the polygon */
@@ -983,6 +1092,9 @@ static int make_new_monotone_poly(int mcur, int v0, int v1)
   int i, j, nf0, nf1;
   vertexchain_t *vp0, *vp1;
 
+ if(g_bug)
+     return 0;
+ 
   vp0 = &vert[v0];
   vp1 = &vert[v1];
 
@@ -1050,6 +1162,8 @@ int monotonate_trapezoids(int n)
   memset((void *)mon, 0, sizeof(mon));
 #endif
 
+  g_bug = 0;
+  
   /* First locate a trapezoid which lies inside the polygon */
   /* and which is triangular */
 
@@ -1108,7 +1222,11 @@ int monotonate_trapezoids(int n)
     traverse_polygon(0, tr_start, tr[tr_start].d0, TR_FROM_DN);
 
   /* return the number of polygons created */
-  return newmon();
+  
+  if(g_bug)
+      return 0;
+  else
+      return newmon();
 }
 
 /*
@@ -1147,6 +1265,9 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
 	}
 
   visited[trnum] = TRUE;
+  
+  if(g_bug)                     /*  Stop recursion eventually  */
+      return 0;
 
   /* We have much more information available here. */
   /* rseg: goes upwards   */
@@ -1164,6 +1285,11 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         {
           v0 = tr[t->d1].lseg;
           v1 = t->lseg;
+          if( (v0 <=0 ) || (v1 <= 0)){
+              g_bug = 1;
+              return 0;
+          }
+              
           if (from == t->d1)
             {
               do_switch = TRUE;
@@ -1194,6 +1320,10 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         {
           v0 = t->rseg;
           v1 = tr[t->u0].rseg;
+          if( (v0 <=0 ) || (v1 <= 0)){
+              g_bug = 1;
+              return 0;
+          }
           if (from == t->u1)
             {
               do_switch = TRUE;
@@ -1224,6 +1354,10 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         {
           v0 = tr[t->d1].lseg;
           v1 = tr[t->u0].rseg;
+          if( (v0 <=0 ) || (v1 <= 0)){
+              g_bug = 1;
+              return 0;
+          }
           retval = SP_2UP_2DN;
           if (((dir == TR_FROM_DN) && (t->d1 == from)) ||
               ((dir == TR_FROM_UP) && (t->u1 == from)))
@@ -1246,11 +1380,20 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         }
       else                      /* only downward cusp */
         {
+            if(t->lseg <= 0){
+                g_bug = 1;
+                return 0;
+            }
+                
           if (_equal_to(&t->lo, &seg[t->lseg].v1))
             {
               v0 = tr[t->u0].rseg;
               v1 = seg[t->lseg].next;
-
+              if( (v0 <=0 ) || (v1 <= 0)){
+                  g_bug = 1;
+                  return 0;
+              }
+              
               retval = SP_2UP_LEFT;
               if ((dir == TR_FROM_UP) && (t->u0 == from))
                 {
@@ -1274,6 +1417,11 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
             {
               v0 = t->rseg;
               v1 = tr[t->u0].rseg;
+              if( (v0 <=0 ) || (v1 <= 0)){
+                  g_bug = 1;
+                  return 0;
+              }
+              
               retval = SP_2UP_RIGHT;
               if ((dir == TR_FROM_UP) && (t->u1 == from))
                 {
@@ -1299,10 +1447,21 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
     {
       if ((t->d0 > 0) && (t->d1 > 0)) /* only upward cusp */
         {
+            if((t->lseg <= 0)){
+                g_bug = 1;
+                return 0;
+            }
+            
           if (_equal_to(&t->hi, &seg[t->lseg].v0))
             {
               v0 = tr[t->d1].lseg;
               v1 = t->lseg;
+              
+              if( (v0 <=0 ) || (v1 <= 0)){
+                  g_bug = 1;
+                  return 0;
+              }
+              
               retval = SP_2DN_LEFT;
               if (!((dir == TR_FROM_DN) && (t->d0 == from)))
                 {
@@ -1327,6 +1486,11 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
               v0 = tr[t->d1].lseg;
               v1 = seg[t->rseg].next;
 
+              if( (v0 <=0 ) || (v1 <= 0)){
+                  g_bug = 1;
+                  return 0;
+              }
+              
               retval = SP_2DN_RIGHT;
               if ((dir == TR_FROM_DN) && (t->d1 == from))
                 {
@@ -1349,6 +1513,11 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
         }
       else                      /* no cusp */
         {
+            if((t->lseg <= 0) || (t->rseg <= 0)){
+                g_bug = 1;
+                return 0;
+            }
+            
           if (_equal_to(&t->hi, &seg[t->lseg].v0) &&
               _equal_to(&t->lo, &seg[t->rseg].v0))
             {
@@ -1379,6 +1548,11 @@ static int traverse_polygon(int mcur, int trnum, int from, int dir)
               v0 = seg[t->rseg].next;
               v1 = seg[t->lseg].next;
 
+              if( (v0 <=0 ) || (v1 <= 0)){
+                  g_bug = 1;
+                  return 0;
+              }
+              
               retval = SP_SIMPLE_LRUP;
               if (dir == TR_FROM_UP)
                 {
@@ -1457,7 +1631,7 @@ int triangulate_monotone_polygons(int nvert, int nmonpoly, int op[][3])
   for (i = 0; i < nmonpoly; i++)
     {
 
-        if((i == 183) && (1899 == nmonpoly))
+        if((i == 319) && (437 == nmonpoly))
         {
             vfirst = mchain[mon[i]].vnum;
             printf("vert index %d %f %f\n", vfirst, vert[vfirst].pt.x, vert[vfirst].pt.y);
@@ -1518,10 +1692,10 @@ int triangulate_monotone_polygons(int nvert, int nmonpoly, int op[][3])
           v = mchain[mchain[posmax].next].vnum;
           if (_equal_to(&vert[v].pt, &ymin))
             {                   /* LHS is a single line */
-              triangulate_single_polygon(nvert, posmax, TRI_LHS, op);
+              triangulate_single_polygon(nvert, vcount, posmax, TRI_LHS, op);
             }
           else
-            triangulate_single_polygon(nvert, posmax, TRI_RHS, op);
+            triangulate_single_polygon(nvert, vcount, posmax, TRI_RHS, op);
         }
     }
 
@@ -1538,7 +1712,7 @@ int triangulate_monotone_polygons(int nvert, int nmonpoly, int op[][3])
  * polygon in O(n) time.
  * Joseph O-Rourke, Computational Geometry in C.
  */
-static int triangulate_single_polygon(int nvert, int posmax, int side, int op[][3])
+static int triangulate_single_polygon(int nvert, int vcount, int posmax, int side, int op[][3])
 {
   register int v;
   int ri = 0;      /* reflex chain */
@@ -1587,6 +1761,13 @@ static int triangulate_single_polygon(int nvert, int posmax, int side, int op[][
           else          /* non-convex */
             {           /* add v to the chain */
               ri++;
+              
+              if(ri > vcount)
+                  return 0;
+                  
+              if(ri > rc_size-2)
+                  return 0;                     // some error condition, stop making output
+
               rc[ri] = v;
               vpos = mchain[vpos].next;
               v = mchain[vpos].vnum;
@@ -2851,7 +3032,7 @@ inline int int_less_than(ipoint_t *v0, ipoint_t *v1)
 }
 
 /* Return the maximum of the two points into the yval structure */
-inline static int int_max(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
+inline int int_max(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
 {
       if (v0->y > v1->y)
             *yval = *v0;
@@ -2870,7 +3051,7 @@ inline static int int_max(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
 
 
 /* Return the minimum of the two points into the yval structure */
-inline static int int_min(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
+inline int int_min(ipoint_t *yval, ipoint_t *v0, ipoint_t *v1)
 {
       if (v0->y < v1->y)
             *yval = *v0;
@@ -2903,7 +3084,7 @@ double iCROSS(int v0x, int v0y, int v1x, int v1y, int v2x, int v2y)
  * have the same y--cood, etc.
  */
 
-inline static int int_is_left_of(int segnum, ipoint_t *v)
+inline int int_is_left_of(int segnum, ipoint_t *v)
 {
       isegment_t *s = &iseg[segnum];
       double area;
@@ -2911,14 +3092,14 @@ inline static int int_is_left_of(int segnum, ipoint_t *v)
 
       if (int_greater_than(&s->v1, &s->v0)) /* seg. going upwards */
       {
-            if ((s->v1.y == v->y))
+            if (s->v1.y == v->y)
             {
                   if (v->x < s->v1.x)
                         area = 1.0;
                   else
                         area = -1.0;
             }
-            else if ((s->v0.y == v->y))
+            else if (s->v0.y == v->y)
             {
                   if (v->x < s->v0.x)
                         area = 1.0;
@@ -2931,14 +3112,14 @@ inline static int int_is_left_of(int segnum, ipoint_t *v)
       }
       else                          /* v0 > v1 */
       {
-            if ((s->v1.y == v->y))
+            if (s->v1.y == v->y)
             {
                   if (v->x < s->v1.x)
                         area = 1.0;
                   else
                         area = -1.0;
             }
-            else if ((s->v0.y == v->y))
+            else if (s->v0.y == v->y)
             {
                   if (v->x < s->v0.x)
                         area = 1.0;
@@ -3188,7 +3369,7 @@ inline int int_locate_endpoint_a(ipoint_t *v, ipoint_t *vo, int r)
                         if (int_equal_to(v, &iseg[rptr->segnum].v0) ||
                             int_equal_to(v, &iseg[rptr->segnum].v1))
                         {
-                              if ((v->y == vo->y)) /* horizontal segment */
+                              if (v->y == vo->y) /* horizontal segment */
                               {
                                     if (vo->x < v->x)
                                     {
@@ -3299,7 +3480,7 @@ inline int int_locate_endpoint(ipoint_t *v, ipoint_t *vo, int r)
                   if (int_equal_to(v, &iseg[rptr->segnum].v0) ||
                       int_equal_to(v, &iseg[rptr->segnum].v1))
                   {
-                        if ((v->y == vo->y)) /* horizontal segment */
+                        if (v->y == vo->y) /* horizontal segment */
                         {
                               if (vo->x < v->x)
                               {
@@ -3908,7 +4089,7 @@ static int int_add_segment(int segnum)
               tpt.y = (double)itr[t].lo.y;
 
               i_d0 = i_d1 = FALSE;
-              if ((itr[t].lo.y == s.v0.y))
+              if (itr[t].lo.y == s.v0.y)
               {
                     if (itr[t].lo.x > s.v0.x)
                           i_d0 = TRUE;
@@ -4200,16 +4381,6 @@ bail_point:
 }
 
 
-#ifdef __MSVC__
-      DWORD filter(EXCEPTION_POINTERS * eps)
-{
-      if (eps->ExceptionRecord->ExceptionCode == EXCEPTION_ACCESS_VIOLATION)
-            return EXCEPTION_EXECUTE_HANDLER;
-      return EXCEPTION_CONTINUE_SEARCH;
-}
-
-      EXCEPTION_POINTERS * eps = 0;
-#endif
 
 
 
@@ -4338,7 +4509,7 @@ int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itra
 
       //    In a MS WIndows environment, use SEH to catch bad code in the tesselator
       //    Polygons producing faults will not be drawn
-#ifdef __MSVC__
+#if defined(__MSVC__)
       __try
       {
             ret_val = do_int_trapezate_polygon(ncontours, cntr, vertices, trap_return,iseg_return, n_traps);
@@ -4350,6 +4521,9 @@ int int_trapezate_polygon(int ncontours, int cntr[], double (*vertices)[2], itra
             *trap_return = NULL;
             *iseg_return = NULL;
       }
+#elif defined(__MINGW32__)
+      /* for now, don't catch exceptions in windows with mingw compiler */
+      ret_val = do_int_trapezate_polygon(ncontours, cntr, vertices, trap_return,iseg_return, n_traps);
 #else
       //    In a Posix environment, use sigaction, etc.. to catch bad code in the tesselator
       //    Polygons producing faults will not be drawn
