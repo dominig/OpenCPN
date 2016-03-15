@@ -377,8 +377,8 @@ bool PlugInManager::LoadAllPlugIns(const wxString &plugin_dir, bool load_enabled
             
         if(m_benable_blackdialog && !b_compat)
         {
-            wxLogMessage(wxString::Format(_("    Incompatible PlugIn detected: %s"), file_name.c_str()));
             OCPNMessageBox( NULL, wxString::Format(_("The plugin %s is not compatible with this version of OpenCPN, please get an updated version."), plugin_file.c_str()), wxString(_("OpenCPN Info")), wxICON_INFORMATION | wxOK, 10 );
+            wxLogMessage(wxString::Format(_("    /usr/bin/opencpn: %s OpenCPN expects: %s"), file_name.c_str(), wxVERSION_STRING));
         }
             
         PlugInContainer *pic = NULL;
@@ -773,7 +773,7 @@ bool PlugInManager::CheckPluginCompatibility(wxString plugin_file)
         VirtualFree(virtualpointer, size, MEM_DECOMMIT);
 #endif
 #ifdef __WXGTK__
-    wxString cmd = _T("ldd ") + plugin_file + _T(" 2>&1");
+    wxString cmd = _T("ldd -v ") + plugin_file + _T(" 2>&1");
     FILE *ldd = popen( cmd.mb_str(), "r" );
     if (ldd != NULL)
     {
@@ -784,10 +784,14 @@ bool PlugInManager::CheckPluginCompatibility(wxString plugin_file)
 
         while( fscanf(ldd, "%s", buf) != EOF )
         {
-            if( strstr(buf, "libwx") != NULL )
+            if( strstr(buf, "WXU_") != NULL ) //search version string in internal lib versioning
             {
                 if(  strstr(buf, strver) == NULL )
+                {
+                    wxLogMessage(wxString::Format(_("Error version wx differs between OpenCPN and plugin")));
+                    wxLogMessage(wxString::Format(_("PlugIn %s calls libwx version: %i.%i.x"), plugin_file.c_str(),wxMAJOR_VERSION, wxMINOR_VERSION));
                     b_compat = false;
+                }
                 break;
             }
         }
